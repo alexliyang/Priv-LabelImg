@@ -1229,7 +1229,6 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
 
     def saveLabels(self, filename):
         strpath=''
-        print("task_mode:" + str(self.task_mode))
         self.filepath=''
         lf = LabelFile()
 
@@ -1248,7 +1247,6 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
                 shape_type=s.shape_type)
 
         shapes = [format_shape(shape) for shape in self.canvas.shapes]
-        print ('shape type', self.shape_type)
         imgFileName = os.path.basename(self.filename)#文件名,获得文件名
         if self.task_mode == 1 :#seg mode
             self.defaultsavedpath()
@@ -1425,10 +1423,16 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
                                 point_list.append(str([0, 0]))
                     points_saved.append(point_list)
                     point_list = []
+            print("points_saved",points_saved)
             if len(points_saved)>1:#保存的point_list维度大于一
+                print('points_saved',points_saved)
                 writer.addpoint(points_saved,self.point_cover_list)#这个cover是当前的cover
             else:#单个框
-                writer.addpoint_single(points_saved,self.point_rects_dex-1,self.canvas.point_cover)#保存上个单个框的points
+                if len(self.canvas.point_rects)>1:
+                    writer.addpoint_single(points_saved,self.point_rects_dex,self.canvas.point_cover)#保存上个单个框的points
+                else:
+                    writer.addpoint_single(points_saved, 0,
+                                           self.canvas.point_cover)  # 保存上个单个框的points
             points_saved=[]
 
 
@@ -1754,7 +1758,7 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
                 if self.usingPascalVocFormat is True and \
                         self.defaultSaveDir is not None:
                     # xmlPath = os.path.join(xmldir2, basename + '.xml')#这句话有问题
-                    xmlPath=xmldir2+'\\'+basename+'.xml'
+                    xmlPath=xmldir2+'/'+basename+'.xml'
                     print("xml path:"+xmlPath)
                     if os.path.exists(xmlPath):
                         print('xml loaded')
@@ -1787,10 +1791,8 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
                     self.loadBRUFile(maskPath)
                     self.loadCLSFile(txtPath)
             elif self.task_mode == 4:
-                print("1",self.canvas.point_point_list_tmp)
                 #load xml to get rects
                 xmlPath=xmldir2+'\\'+basename+'.xml'
-                print("xml path:"+xmlPath)
                 if os.path.exists(xmlPath):
                     print('xml loaded')
                     self.loadPascalXMLByFilename(xmlPath)
@@ -1811,8 +1813,6 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
         xml_reader = Point_Xml_Reader(filepath)
         a, b = xml_reader.readpoints()
         c = xml_reader.point_to_points(a)#将保存形式转化成（x,y)的形式
-        print('b', b)
-
         for q,vis_list in enumerate(b):
             self.point_cover_list[q]=vis_list
             if len(self.canvas.point_rects)<2:
@@ -1825,9 +1825,25 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
                     else:
                         self.canvas.point_cover[i] = 0
             else:
-                self.canvas.point_cover=self.convert_list_cover(self.point_cover_list[0])
+                print("self.point_cover_list[0]",self.point_cover_list[0])
+                self.canvas.point_cover=self.convert_list_cover(self.point_cover_list[0])#self.canvas.point_cover用来判断当前的点的类型
+                self.rects_vis(self.canvas.point_cover)
                 self.canvas.repaint()
         self.canvas.point_load_point_shape(c)
+    def rects_vis(self,vis_list):
+        for i, vis in enumerate(vis_list):
+            print(vis,vis_list[vis])
+            if vis_list[vis] != 0:
+                self.shapesToItems[self.labelHist.index(self.labelHist[i])].setCheckState(Qt.Checked)
+                if vis_list[vis] == 1:
+                    print('vis', vis)
+                    self.canvas.point_cover[i] = 1
+            else:
+                print("dada",vis)
+                self.shapesToItems[self.labelHist.index(self.labelHist[i])].setCheckState(not Qt.Checked)
+                self.canvas.point_cover[i] = 0
+
+
 
         # 此处为加载txt的标注文件
         # point_list = []
@@ -2094,7 +2110,7 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
     def openNextImg(self, _value=False):
         self.fileListWidget.clear()
         # self.canvas.point_rects.clear()
-        # self.point_cover_list.clear()
+
         if self.fileListWidget_firstitem==False:
             for imgPath in self.mImgList:
                 item = QListWidgetItem(imgPath)
@@ -2117,20 +2133,21 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
             if currIndex + 1 < len(self.mImgList):
                 filename = self.mImgList[currIndex + 1]
                 self.canvas.point_rects.clear()#清空rects的操作放在这里，为了防止最后一张的交互错误
-                self.point_cover_list.clear()#清空操作要放在保存之后
+                # self.point_cover_list.clear()#清空操作要放在保存之后
             else:
                 QMessageBox.about(self, "no more images !",
                                   "this is the last image")
                 return
 
         if self.task_mode==4:
-            if self.autoSaving is True and self.defaultSaveDir is not None and not self.image.isNull():
+            if self.autoSaving is True and not self.image.isNull():
                 self.saveFile()
             self.point_next_img()
         if filename:
             self.loadFile(filename)
     def point_next_img(self):#这部分代码用于恢复point相关的初始值
         self.canvas.point_shape={}
+        self.point_cover_list.clear()
         self.canvas.point_point_list=[]
         self.canvas.point_rects_index=0
         for i in self.canvas.point_cover:
@@ -2150,6 +2167,8 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
         for i in range(len(list)):
             if list[i]==1:
                 cover[i]=1
+            elif list[i]==0:
+                cover[i]=0
             else:
                 cover[i]=2
         return cover
@@ -2160,6 +2179,10 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
 
         self.canvas.draw_next_rect()  # 这里无需结合上面代码的逻辑
         point_tmp_len=len(self.canvas.point_shape)
+        ###
+        for i in self.shapesToItems:
+            self.shapesToItems[i].setCheckState(not Qt.Checked)
+        #####
         if self.point_rects_dex==point_tmp_len:
             self.point_rects_dex=0
         if self.canvas.point_cover_change == True:
@@ -2168,7 +2191,6 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
             self.canvas.point_cover_change = False
 
         if self.point_rects_dex not in self.point_cover_list:#self.point_rects_dex表示的上一个框的dex
-            print("hhhh")
             if self.canvas.point_rects_index==0:
                 self.point_cover_list[len(self.canvas.point_rects)-1] = self.convert_cover_list(
                     self.canvas.point_cover)
@@ -2181,17 +2203,26 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
                 for i in self.canvas.point_cover:
                     self.canvas.point_cover[i] = 2
         else:
-            print("cccc",self.point_cover_list)
-            self.canvas.point_cover=self.convert_list_cover(self.point_cover_list[self.canvas.point_rects_index])
-            self.canvas.repaint()
+            print("self.point_cover_list",self.point_cover_list)
+            if self.canvas.point_rects_index in self.point_cover_list:
+                self.canvas.point_cover=self.convert_list_cover(self.point_cover_list[self.canvas.point_rects_index])
+                self.rects_vis(self.canvas.point_cover)
+                self.canvas.repaint()
 
+            else:
+                pass
 
         if self.point_rects_dex<=point_tmp_len-1:
             if self.autoSaving is True and not self.image.isNull():
                 if self.dirty is True or self.task_mode ==4 :
                     self.saveFile()
+                    for i in self.canvas.point_cover:
+                        self.canvas.point_cover[i] = 2
 
         self.point_rects_dex+=1
+        ######
+        # if
+
 
     def openFile(self, _value=False):
         self.mImgList.clear()
@@ -2244,9 +2275,7 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
                 basename = os.path.basename(os.path.splitext(self.filename)[0])
                 savedPath = self.loadingfilepath()
                 savedPath = savedPath + '\\' + basename + '.txt'
-            print('saved path:',savedPath )
             if os.path.isfile(savedPath):
-                print('remove path:', savedPath)
                 os.remove(savedPath)
 
     def saveFileAs(self, _value=False):
@@ -2344,7 +2373,6 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
             if self.task_mode==4:
                 item = self.currentItem()
                 if self.itemsToShapes:
-                    print('item_id',self.itemsToShapes[item])
                     self.canvas.deletepoint(self.itemsToShapes[item]+1)#delete point id
                     item.setCheckState(not Qt.Checked)
             else:
@@ -2389,7 +2417,6 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
         if os.path.exists(self.label_color_map_path):
             with codecs.open(self.label_color_map_path, 'r', 'utf-8') as f:
                 lines = f.readlines()
-                print ('color map', lines)
                 for line in lines:
                     line = line.strip()
                     line = line.split(',')
@@ -2497,9 +2524,7 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
             return
 
         tVocParseReader = PascalVocReader(filename)
-        print('error reader')
         shapes = tVocParseReader.getShapes()
-        print('error getshapes')
         instance_ids = [shape[-1] for shape in shapes]
         self.current_instance_id = max(instance_ids)
         self.loadLabels(shapes)
