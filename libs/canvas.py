@@ -178,7 +178,13 @@ class Canvas(QWidget):
         if self.task_mode==4:
             self.point_point = pos
             if len(self.point_rects) == 1:
-                self.draw_point_single_img(self.point_point_list)
+                self.draw_point_single_img(self.point_point_list,0)
+            else:
+                if self.point_rects_index>0:
+                    self.draw_point_single_img(self.point_point_list,self.point_rects_index)
+            #     else:
+            #         self.draw_point_single_img(self.point_point_list, self.point_rects_index)
+
             for i, p in enumerate(self.point_point_list):
                 if p and distance(p - pos) <= 5 :
                     self.point_dex=i+1#这里加一的目的是为了绘制的时候 不会出现id=0的情况，因此self.point_dex最小为1 而不是0
@@ -318,8 +324,8 @@ class Canvas(QWidget):
             elif self.task_mode == 4:
                 self.point_changed=True
 
-                if self.point_modified:
-                    self.point_point_list[self.point_modified]=pos
+                if self.point_modified :
+                    self.point_point_list[self.point_modified-1]=pos
                     self.point_modified = False
                     self.repaint()
                 else:
@@ -678,17 +684,20 @@ class Canvas(QWidget):
                     # self.repaint()
                 else:
                     print('v3')
-                    self.point_point_list[id]=None
-                    self.point_visible[id] = False
-                    self.repaint()
-                    print('pointlink delete')
+                    try:
+                        self.point_point_list[id]=None
+                        self.point_visible[id] = False
+                        self.repaint()
+                        print('pointlink delete')
+                    except IndexError:
+                        pass
         else :#针对 全选
             print('all delete')
             # self.repaint()
     def point_modify(self,i):
         if i in range(len(self.point_point_list)):
             print('modified',i)
-            self.point_modified=i
+            self.point_modified=i+1
     def point_all_delete(self):
         self.point_changed=True
         self.point_all_deleted=True
@@ -730,8 +739,8 @@ class Canvas(QWidget):
             self.repaint()
     def draw_point_rect(self,x,y,w,h):
         self.point_rects.append([x,y,w,h])
-    def draw_point_single_img(self,point_point_list):
-        self.point_shape[0] = self.point_point_list
+    def draw_point_single_img(self,point_point_list,i):
+        self.point_shape[i] = self.point_point_list
     def draw_next_rect(self):
         point_point_list=[]
         if self.point_changed:

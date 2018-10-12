@@ -12,47 +12,55 @@ class Point_Xml_Writer():
         tree.parse(self.filepath)
         root = tree.getroot()
         cover_list=cover
-        try:
-            for i,object_iter in enumerate(tree.findall('object')):
+        print('points',points)
+        print("cover list",cover_list)
+        # try:
+        for i,object_iter in enumerate(tree.findall('object')):
+            if i in range(len(points)):
                 if len(points[i])>0:
+                    print(i,len(points[i]))
                     element = Element('point')
                     # keypoints 子结点
                     keypoints = Element('keypoints')
                     keypoints.text = str(self.convert_point(points[i]))
                     # points_num 子结点
                     visible = Element('visible')
-                    print("cover", cover_list)
                     self.analy_visible(self.convert_point(points[i]),cover_list[i])
                     visible.text = str(self.visible_list)
                     element.append(keypoints)
                     element.append(visible)
                     object_iter.append(element)
                     self.visible_list=[]#写完一次注意清空
-            tree.write(os.path.splitext(self.filepath)[0]+'_point.xml', encoding='utf-8', xml_declaration=True)
-        except IndexError:
-            pass
+            else:
+                pass
+        tree.write(os.path.splitext(self.filepath)[0]+'_point.xml', encoding='utf-8', xml_declaration=True)
+
+
+        # except IndexError:
+        #     pass
     def addpoint_single(self,points,n,cover):#对单个的保存
-        try:
-            if points[0]:
-                tree = ElementTree()
-                tree.parse(self.filepath)
-                root = tree.getroot()
-                cover_list=cover
-                element = Element('point')
-                keypoints = Element('keypoints')
-                keypoints.text = str(self.convert_point(points[0]))
-                visible = Element('visible')
-                print("cover",cover_list)
-                self.analy_visible(self.convert_point(points[0]),cover_list)
-                visible.text = str(self.visible_list)
-                element.append(keypoints)
-                element.append(visible)
-                tree.findall('object')[n].append(element)
-                tree.write(os.path.splitext(self.filepath)[0] + '_point.xml', encoding='utf-8', xml_declaration=True)
-        except IndexError:
-            pass
+
+        if len(points)>0:
+            print("n",n)
+            tree = ElementTree()
+            tree.parse(self.filepath)
+            root = tree.getroot()
+            cover_list=cover
+            element = Element('point')
+            keypoints = Element('keypoints')
+            keypoints.text = str(self.convert_point(points[0]))
+            visible = Element('visible')
+            print("cover",cover_list)
+            self.analy_visible(self.convert_point(points[0]),cover_list)
+            visible.text = str(self.visible_list)
+            element.append(keypoints)
+            element.append(visible)
+            tree.findall('object')[n].append(element)
+            tree.write(os.path.splitext(self.filepath)[0] + '_point.xml', encoding='utf-8', xml_declaration=True)
+
 
     def convert_point(self,points):
+
         a = points
         b = []
         for i in a:
@@ -61,14 +69,18 @@ class Point_Xml_Writer():
         return b
     def analy_visible(self,points,cover_list):
         num=len(points)//2
+        print('points',points)
         for i in range(num):
             if points[2 * i] == 0 and points[2 * i + 1] == 0:
                 self.visible_list.append(0)
-            elif cover_list[i]==1:
-
-                self.visible_list.append(1)
+            elif i in range(len(cover_list)):
+                if cover_list[i]==1:
+                    self.visible_list.append(1)
+                else:
+                    self.visible_list.append(2)
             else:
                 self.visible_list.append(2)
+        print(self.visible_list)
 
 class Point_Xml_Reader():
     def __init__(self, filepath):
