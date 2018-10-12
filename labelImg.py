@@ -1406,9 +1406,11 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
             writer = Point_Xml_Writer(savefilename_xml)
             point_list=[]
             points_saved=[]
+            print('da',self.canvas.point_shape)
             for i in range(len(self.canvas.point_shape)):
                 if i in self.canvas.point_shape:
                     self.point_list_tmp = self.canvas.point_shape[i]
+                    print('self.point_list_tmp',self.point_list_tmp)
                     for l in range(len(self.point_list_tmp)):
                         if isinstance(self.point_list_tmp[l], QPointF):  # 绘制过程
                             if self.point_list_tmp[l]:
@@ -1424,8 +1426,8 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
                     points_saved.append(point_list)
                     point_list = []
             print("points_saved",points_saved)
+            print("self.point_cover_list",self.point_cover_list)
             if len(points_saved)>1:#保存的point_list维度大于一
-                print('points_saved',points_saved)
                 writer.addpoint(points_saved,self.point_cover_list)#这个cover是当前的cover
             else:#单个框
                 if len(self.canvas.point_rects)>1:
@@ -2140,6 +2142,13 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
                 return
 
         if self.task_mode==4:
+            if self.canvas.point_rects_index>0:
+                print("dada")
+                self.point_cover_list[self.canvas.point_rects_index]=self.convert_cover_list(self.canvas.point_cover)
+            else:
+
+                self.point_cover_list[0] = self.convert_cover_list(
+                    self.canvas.point_cover)
             if self.autoSaving is True and not self.image.isNull():
                 self.saveFile()
             self.point_next_img()
@@ -2152,8 +2161,6 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
         self.canvas.point_rects_index=0
         for i in self.canvas.point_cover:
             self.canvas.point_cover[i]=2
-
-    # def point_next_rect_loading(self):#这部分代码用于下一个框子的加载过程
     def convert_cover_list(self,coverlist):#将canvas的coerlist转成list
         mm = []
         for i in coverlist:
@@ -2172,9 +2179,6 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
             else:
                 cover[i]=2
         return cover
-
-
-
     def openNextrects(self):
 
         self.canvas.draw_next_rect()  # 这里无需结合上面代码的逻辑
@@ -2208,11 +2212,11 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
                 self.canvas.point_cover=self.convert_list_cover(self.point_cover_list[self.canvas.point_rects_index])
                 self.rects_vis(self.canvas.point_cover)
                 self.canvas.repaint()
-
             else:
                 pass
 
         if self.point_rects_dex<=point_tmp_len-1:
+
             if self.autoSaving is True and not self.image.isNull():
                 if self.dirty is True or self.task_mode ==4 :
                     self.saveFile()
@@ -2263,6 +2267,14 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
                 self._saveFile(self.filename if self.labelFile
                                else self.saveFileDialog())
         elif self.task_mode == 3 or self.task_mode == 4:
+            if self.task_mode == 4:
+                if self.canvas.point_rects_index > 0:
+                    self.point_cover_list[self.canvas.point_rects_index] = self.convert_cover_list(
+                        self.canvas.point_cover)
+                else:
+
+                    self.point_cover_list[0] = self.convert_cover_list(
+                        self.canvas.point_cover)
             self._saveFile(self.filename)
 
         else:
@@ -2277,6 +2289,7 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
                 savedPath = savedPath + '\\' + basename + '.txt'
             if os.path.isfile(savedPath):
                 os.remove(savedPath)
+
 
     def saveFileAs(self, _value=False):
         assert not self.image.isNull(), "cannot save empty image"
