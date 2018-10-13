@@ -96,6 +96,7 @@ class Canvas(QWidget):
         self.point_shape={}
         self.point_changed=False
         self.point_cover_change=False
+        self.point_font_size=8
 
 
         self.xuxian=None
@@ -602,7 +603,7 @@ class Canvas(QWidget):
                         if i in self.point_cover:
                             if self.point_cover[i]==1:
                                 p.setPen(QColor(255,0,0))
-                                p.setFont(QFont('SimSun', 5))
+                                p.setFont(QFont('SimSun', self.point_font_size))
                                 p.drawText(QRect(point.x(),point.y(), 25, 25), Qt.AlignLeft | Qt.AlignVCenter, '1')
 
             if self.point_dex :#注意这里剔除了0 0是none  高亮标注的操作  包括move
@@ -762,6 +763,8 @@ class Canvas(QWidget):
         else:#加载过程
             print("point_point_list",point_point_list)
             self.point_load(point_point_list)
+    def _font_size(self,h):
+        self.point_font_size=h//60
 
 
 
