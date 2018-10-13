@@ -25,3 +25,10 @@ python labelimg.py
 
 人体关键点功能
 
+使用方式
+
+使用过程截图
+
+如何转换为coco数据集json格式，lib文件夹下有个voc_to_coco的py文件，修正其中路径即可。
+
+如果想可视化所标注的关键点，可参考本人的另外一个工程COCOAPI_Visualition
