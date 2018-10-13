@@ -4,9 +4,13 @@
 
 需要安装：
 python3/2 (更建议在3下，2下某些功能出现问题)
+
 pyqt5
+
 opencv
+
 qdarkstyle
+
 requests
 
 人体关键点功能
