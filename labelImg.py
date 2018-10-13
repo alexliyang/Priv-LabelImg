@@ -1119,8 +1119,6 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
         pass
     def allno(self):
         self.point_delete=True
-
-        # self.itemsToShapes.clear()#
         self.canvas.point_all_delete()
 
         # print('self.itemsToShapes',self.itemsToShapes)
@@ -1701,6 +1699,7 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
                     vis = cv2.imread(filename)  # 注意不要读中文路径文件夹
                     try:
                         image_height, image_width, image_depth = vis.shape
+                        self.canvas._font_size(image_height)
                     except AttributeError:
                         self.errorMessage(
                             u'Error opening file',
