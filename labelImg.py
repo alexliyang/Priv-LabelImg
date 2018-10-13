@@ -1406,11 +1406,9 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
             writer = Point_Xml_Writer(savefilename_xml)
             point_list=[]
             points_saved=[]
-            print('da',self.canvas.point_shape)
             for i in range(len(self.canvas.point_shape)):
                 if i in self.canvas.point_shape:
                     self.point_list_tmp = self.canvas.point_shape[i]
-                    print('self.point_list_tmp',self.point_list_tmp)
                     for l in range(len(self.point_list_tmp)):
                         if isinstance(self.point_list_tmp[l], QPointF):  # 绘制过程
                             if self.point_list_tmp[l]:
@@ -1426,7 +1424,7 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
                     points_saved.append(point_list)
                     point_list = []
             print("points_saved",points_saved)
-            print("self.point_cover_list",self.point_cover_list)
+            print("point_cover_list",self.point_cover_list)
             if len(points_saved)>1:#保存的point_list维度大于一
                 writer.addpoint(points_saved,self.point_cover_list)#这个cover是当前的cover
             else:#单个框
@@ -1827,7 +1825,7 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
                     else:
                         self.canvas.point_cover[i] = 0
             else:
-                print("self.point_cover_list[0]",self.point_cover_list[0])
+                print("point_cover_list",self.point_cover_list)
                 self.canvas.point_cover=self.convert_list_cover(self.point_cover_list[0])#self.canvas.point_cover用来判断当前的点的类型
                 self.rects_vis(self.canvas.point_cover)
                 self.canvas.repaint()
@@ -2189,43 +2187,47 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
         #####
         if self.point_rects_dex==point_tmp_len:
             self.point_rects_dex=0
-        if self.canvas.point_cover_change == True:
-            print('self.canvas.point_cover',self.point_cover_list)
+        print("da", self.point_cover_list)
+        if self.canvas.point_cover_change == True :
             self.point_cover_list[self.point_rects_dex] = self.convert_cover_list(self.canvas.point_cover)
             self.canvas.point_cover_change = False
+            print("a", self.point_cover_list)
+
 
         if self.point_rects_dex not in self.point_cover_list:#self.point_rects_dex表示的上一个框的dex
             if self.canvas.point_rects_index==0:
                 self.point_cover_list[len(self.canvas.point_rects)-1] = self.convert_cover_list(
                     self.canvas.point_cover)
-            else:
+                print("b", self.point_cover_list)
+            elif self.canvas.point_cover_change:
                 self.point_cover_list[self.canvas.point_rects_index-1] = self.convert_cover_list(self.canvas.point_cover)
+                print("c",self.point_cover_list,self.canvas.point_rects_index)
                 #以下的if-else语句为了解决最后一个框转第一个框出现的问题,第二个框没有的情况
             if self.point_rects_dex==len(self.canvas.point_rects)-1 and self.point_rects_dex in  self.point_cover_list:
                 self.canvas.point_cover=self.convert_list_cover(self.point_cover_list[0])
             else:
-                for i in self.canvas.point_cover:
+                for i in self.canvas.point_cover :
                     self.canvas.point_cover[i] = 2
         else:
-            print("self.point_cover_list",self.point_cover_list)
             if self.canvas.point_rects_index in self.point_cover_list:
                 self.canvas.point_cover=self.convert_list_cover(self.point_cover_list[self.canvas.point_rects_index])
                 self.rects_vis(self.canvas.point_cover)
                 self.canvas.repaint()
             else:
                 pass
+        print("bb", self.point_cover_list)
 
         if self.point_rects_dex<=point_tmp_len-1:
-
             if self.autoSaving is True and not self.image.isNull():
                 if self.dirty is True or self.task_mode ==4 :
                     self.saveFile()
-                    for i in self.canvas.point_cover:
-                        self.canvas.point_cover[i] = 2
+                    if self.canvas.point_rects_index not in self.point_cover_list :
+                        for i in self.canvas.point_cover:
+                            self.canvas.point_cover[i]=2
+
 
         self.point_rects_dex+=1
-        ######
-        # if
+
 
 
     def openFile(self, _value=False):
@@ -2268,11 +2270,12 @@ class MainWindow(QMainWindow, WindowMixin):#可以带菜单栏、工具栏的只
                                else self.saveFileDialog())
         elif self.task_mode == 3 or self.task_mode == 4:
             if self.task_mode == 4:
-                if self.canvas.point_rects_index > 0:
+                if self.canvas.point_rects_index > 0 and self.canvas.point_cover_change:
+
                     self.point_cover_list[self.canvas.point_rects_index] = self.convert_cover_list(
                         self.canvas.point_cover)
-                else:
-
+                elif 0 not in self.point_cover_list :
+                    print("dadadada")
                     self.point_cover_list[0] = self.convert_cover_list(
                         self.canvas.point_cover)
             self._saveFile(self.filename)
