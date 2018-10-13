@@ -23,6 +23,7 @@ python labelimg.py
 
 只需要下载Priv-LabelImg_1.0，其中有个exe文件，直接运行即可。
 
+
 人体关键点功能
 
 使用方式
