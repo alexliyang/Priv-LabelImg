@@ -29,7 +29,8 @@ python labelimg.py
 使用方式
 
 使用过程截图
-![image]https://github.com/ZHUXUHAN/Priv-LabelImg/blob/master/屏幕快照%202019-04-10%20上午9.33.06.png
+
+![image](https://github.com/ZHUXUHAN/Priv-LabelImg/blob/master/屏幕快照%202019-04-10%20上午9.33.06.png)
 
 如何转换为coco数据集json格式，lib文件夹下有个voc_to_coco的py文件，修正其中路径即可。
 
